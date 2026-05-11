@@ -936,7 +936,7 @@ function getChapterPdf(ref, subject) {
     if (/^2-/.test(r)) return SUBJ_MAP['マーケティング'];
     if (/^3-/.test(r)) return SUBJ_MAP['企業会計'];
     if (/^4-/.test(r)) return SUBJ_MAP['ファイナンス'];
-    if (/^5-/.test(r)) return SUBJ_MAP['人的資源管理'];
+    if (/^5-/.test(r)) return (subject && SUBJ_MAP[subject]) ? SUBJ_MAP[subject] : SUBJ_MAP['人的資源管理'];
     if (/^IT/.test(r))  return SUBJ_MAP['IT'];
     if (/^7-/.test(r)) return SUBJ_MAP['ゲーム理論・交渉術'];
   }
@@ -1133,9 +1133,10 @@ function showScreen(name) {
 
 function showTab(tab) {
   const map = {practice:'top', exam:'exam-home', stats:'stats-tab', bookmarks:'bookmarks'};
+  const idMap = {practice:'tab-practice', exam:'tab-exam', stats:'tab-stats', bookmarks:'tab-bm'};
   showScreen(map[tab] || 'top');
   document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
-  const btn = document.getElementById('tab-' + tab);
+  const btn = document.getElementById(idMap[tab] || ('tab-' + tab));
   if (btn) btn.classList.add('active');
   if (tab === 'stats') renderStatsTab();
   if (tab === 'exam') renderExamHistory();
