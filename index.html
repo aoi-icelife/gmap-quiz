@@ -8,6 +8,19 @@
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',sans-serif;font-size:16px;background:#f0f4f8;color:#1a1a2e;min-height:100vh}
 
+/* ===== LOGIN SCREEN ===== */
+#screen-login{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 24px;background:#f0f4f8}
+.login-box{background:#fff;border-radius:20px;padding:32px 24px;width:100%;max-width:360px;box-shadow:0 4px 20px rgba(0,0,0,.10)}
+.login-title{font-size:22px;font-weight:700;color:#2d3561;text-align:center;margin-bottom:4px}
+.login-sub{font-size:13px;color:#888;text-align:center;margin-bottom:28px}
+.login-field{margin-bottom:16px}
+.login-field label{display:block;font-size:12px;font-weight:700;color:#888;margin-bottom:6px;letter-spacing:.05em}
+.login-field input{width:100%;padding:14px 16px;border-radius:12px;border:2px solid #e0e0e0;font-size:15px;color:#1a1a2e;outline:none;transition:border-color .15s}
+.login-field input:focus{border-color:#4a6cf7}
+.login-btn{width:100%;padding:16px;border-radius:14px;border:none;background:linear-gradient(135deg,#4a6cf7,#6a3de8);color:#fff;font-size:16px;font-weight:700;cursor:pointer;margin-top:8px;box-shadow:0 4px 15px rgba(74,108,247,.35);letter-spacing:.05em}
+.login-btn:active{transform:scale(.98)}
+.login-error{font-size:13px;color:#e74c3c;text-align:center;margin-top:12px;min-height:20px;font-weight:600}
+
 /* ===== TOP SCREEN ===== */
 #screen-top{display:flex;flex-direction:column;min-height:100vh;padding:24px 16px}
 .app-title{font-size:26px;font-weight:700;color:#2d3561;text-align:center;margin-bottom:4px}
@@ -148,6 +161,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
 </style>
 </head>
 <body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="screen-login">
+  <div class="login-box">
+    <div class="login-title">GMAP-BF 対策クイズ</div>
+    <div class="login-sub">ログインしてください</div>
+    <div class="login-field">
+      <label>ユーザー名</label>
+      <input type="text" id="login-user" placeholder="username" autocomplete="username">
+    </div>
+    <div class="login-field">
+      <label>パスワード</label>
+      <input type="password" id="login-pass" placeholder="password" autocomplete="current-password" onkeydown="if(event.key==='Enter')checkLogin()">
+    </div>
+    <button class="login-btn" onclick="checkLogin()">ログイン</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
 
 <!-- ===== TOP SCREEN ===== -->
 <div id="screen-top">
@@ -916,11 +947,11 @@ function clearHistory() {
 // SCREEN SWITCHING
 // ===================================================
 function showScreen(name) {
-  ['top','quiz','result','bookmarks'].forEach(s => {
+  ['login','top','quiz','result','bookmarks'].forEach(s => {
     const el = document.getElementById('screen-' + s);
     if (!el) return;
     el.style.display = (s === name) ? 'flex' : 'none';
-    if (s === name && s !== 'top') el.style.flexDirection = 'column';
+    if (s === name && s !== 'top' && s !== 'login') el.style.flexDirection = 'column';
   });
   if (name === 'bookmarks') renderBookmarks();
   if (name === 'top') updateBmBadge();
@@ -998,10 +1029,27 @@ function clearBookmarks() {
 // ===================================================
 // INIT
 // ===================================================
+function checkLogin() {
+  const u = document.getElementById('login-user').value.trim();
+  const p = document.getElementById('login-pass').value;
+  if (u === 'nhiyamizu' && p === '123456naoya') {
+    sessionStorage.setItem('gmap_auth', '1');
+    showScreen('top');
+  } else {
+    document.getElementById('login-error').textContent = 'ユーザー名またはパスワードが違います';
+    document.getElementById('login-pass').value = '';
+    document.getElementById('login-pass').focus();
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   updateTopStats();
   updateBmBadge();
-  showScreen('top');
+  if (sessionStorage.getItem('gmap_auth') === '1') {
+    showScreen('top');
+  } else {
+    showScreen('login');
+  }
 });
 </script>
 </body>
