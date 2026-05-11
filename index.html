@@ -942,7 +942,7 @@ function showFeedback(isCorrect, refText, extraHtml, explanationText, q) {
   if (skipBtn) skipBtn.style.display = 'none';
   const isBm = q ? isBookmarked(q.id) : false;
   const chap = q ? getChapterPdf(q.reference, q.subject) : null;
-  const chapHtml = chap ? `<div style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px">${SVG_BOOK} Mbook <strong>${chap[1]}</strong> を確認</div>` : '';
+  const chapHtml = chap ? `<a href="Mbook_chapters/${encodeURIComponent(chap[0])}" target="_blank" rel="noopener" style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px;text-decoration:none">${SVG_BOOK} Mbook <strong style="text-decoration:underline">${chap[1]}</strong> を開く</a>` : '';
   fb.innerHTML = `
     <div class="feedback-icon">${isCorrect ? SVG_OK : SVG_NG}</div>
     <div class="feedback-label ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '正解！' : '不正解'}</div>
