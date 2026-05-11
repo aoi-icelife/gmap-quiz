@@ -261,19 +261,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
   <div class="app-sub">グロービス・マネジメント・アプティチュード</div>
 
   <div class="card">
-    <div class="section-label">学習状況</div>
-    <div class="stats-row" id="stats-row">
-      <button class="stat-chip" onclick="showStatsList('total')"><div class="num" id="stat-total">0</div><div class="lbl">解答済み</div></button>
-      <button class="stat-chip" onclick="showStatsList('correct')"><div class="num" id="stat-correct">0</div><div class="lbl">正解</div></button>
-      <button class="stat-chip" onclick="showStatsList('weak')"><div class="num" id="stat-weak">0</div><div class="lbl">苦手</div></button>
-    </div>
-    <button class="reset-stats-btn" onclick="clearHistory()">
-      <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
-      学習履歴をリセット
-    </button>
-  </div>
-
-  <div class="card">
     <div class="section-label">科目を選ぶ</div>
     <div class="subject-grid">
       <button class="subject-btn all-btn active" onclick="selectSubject('全科目')">全科目（GMAP-BF）</button>
@@ -682,9 +669,13 @@ function updateTopStats() {
     totalAnswered += r.correct + r.wrong;
     totalCorrect  += r.correct;
   });
-  document.getElementById('stat-total').textContent   = totalAnswered;
-  document.getElementById('stat-correct').textContent = totalCorrect;
-  document.getElementById('stat-weak').textContent    = getWeakIds().length;
+  // 統計タブの数値も更新（タブが開かれているときのみ）
+  const elTotal   = document.getElementById('stat-total');
+  const elCorrect = document.getElementById('stat-correct');
+  const elWeak    = document.getElementById('stat-weak');
+  if (elTotal)   elTotal.textContent   = totalAnswered;
+  if (elCorrect) elCorrect.textContent = totalCorrect;
+  if (elWeak)    elWeak.textContent    = getWeakIds().length;
 }
 
 // ===================================================
