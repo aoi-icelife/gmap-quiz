@@ -909,30 +909,48 @@ const SVG_STAR_OFF = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none
 const SVG_BOOK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
 
 function getChapterPdf(ref, subject) {
+  // [ファイル名, 表示ラベル, PDFページオフセット計算関数]
+  // Mbook_01のみ前付け12p→ sec k: PDF p=(k-1)*2+13
+  // Mbook_02〜07は表紙のみ→ sec k: PDF p=k*2
   const SUBJ_MAP = {
-    '経営戦略':['Mbook_01_経営戦略.pdf','01 経営戦略'],
-    'マーケティング':['Mbook_02_マーケティング.pdf','02 マーケティング'],
-    '企業会計':['Mbook_03_アカウンティング.pdf','03 企業会計'],
-    'アカウンティング':['Mbook_03_アカウンティング.pdf','03 企業会計'],
-    'ファイナンス':['Mbook_04_ファイナンス.pdf','04 ファイナンス'],
-    '人的資源管理':['Mbook_05_人・組織.pdf','05 人的資源管理'],
-    '組織行動学':['Mbook_05_人・組織.pdf','05 組織行動学'],
-    '人・組織':['Mbook_05_人・組織.pdf','05 人・組織'],
-    'IT':['Mbook_06_IT.pdf','06 IT'],
-    'ゲーム理論・交渉術':['Mbook_07_ゲーム理論・交渉術.pdf','07 ゲーム理論・交渉術'],
+    '経営戦略':  ['Mbook_01_経営戦略.pdf',       '01 経営戦略',       k => (k-1)*2+13],
+    'マーケティング':['Mbook_02_マーケティング.pdf', '02 マーケティング', k => k*2],
+    '企業会計':  ['Mbook_03_アカウンティング.pdf', '03 企業会計',       k => k*2],
+    'アカウンティング':['Mbook_03_アカウンティング.pdf','03 企業会計',    k => k*2],
+    'ファイナンス':['Mbook_04_ファイナンス.pdf',   '04 ファイナンス',   k => k*2],
+    '人的資源管理':['Mbook_05_人・組織.pdf',       '05 人的資源管理',   k => k*2],
+    '組織行動学':['Mbook_05_人・組織.pdf',         '05 組織行動学',     k => k*2],
+    '人・組織':  ['Mbook_05_人・組織.pdf',         '05 人・組織',       k => k*2],
+    'IT':        ['Mbook_06_IT.pdf',               '06 IT',             k => k*2],
+    'ゲーム理論・交渉術':['Mbook_07_ゲーム理論・交渉術.pdf','07 ゲーム理論・交渉術', k => k*2],
   };
+
+  // referenceからセクション番号を解析してページを計算
   if (ref) {
-    const r = ref.replace('参照：','').replace('Mbook ','');
-    if (/^1-/.test(r)) return SUBJ_MAP['経営戦略'];
-    if (/^2-/.test(r)) return SUBJ_MAP['マーケティング'];
-    if (/^3-/.test(r)) return SUBJ_MAP['企業会計'];
-    if (/^4-/.test(r)) return SUBJ_MAP['ファイナンス'];
-    if (/^5-/.test(r)) return (subject && SUBJ_MAP[subject]) ? SUBJ_MAP[subject] : SUBJ_MAP['人的資源管理'];
-    if (/^IT/.test(r))  return SUBJ_MAP['IT'];
-    if (/^7-/.test(r)) return SUBJ_MAP['ゲーム理論・交渉術'];
+    const r = ref.replace('参照：','').trim();
+    const m = r.match(/^(\d+)-(\d+)/);
+    if (m) {
+      const chap = parseInt(m[1]);
+      const sec  = parseInt(m[2]);
+      const chapKeyMap = {1:'経営戦略',2:'マーケティング',3:'企業会計',4:'ファイナンス',5:'人的資源管理'};
+      // subject優先（5番台は人的資源管理か組織行動学か区別）
+      let key = (chap === 5 && subject && SUBJ_MAP[subject]) ? subject : (chapKeyMap[chap] || null);
+      if (!key && chap === 7) key = 'ゲーム理論・交渉術';
+      if (key && SUBJ_MAP[key]) {
+        const [file, label, pageFn] = SUBJ_MAP[key];
+        const page = pageFn(sec);
+        return [file, label, page];
+      }
+    }
+    if (/^IT/i.test(r)) return [...SUBJ_MAP['IT'], null];
   }
-  // Fallback: use subject name
-  return subject && SUBJ_MAP[subject] ? SUBJ_MAP[subject] : null;
+
+  // referenceなし → subject名だけでフォールバック（ページ不明）
+  if (subject && SUBJ_MAP[subject]) {
+    const [file, label] = SUBJ_MAP[subject];
+    return [file, label, null];
+  }
+  return null;
 }
 
 function showFeedback(isCorrect, refText, extraHtml, explanationText, q) {
@@ -942,7 +960,11 @@ function showFeedback(isCorrect, refText, extraHtml, explanationText, q) {
   if (skipBtn) skipBtn.style.display = 'none';
   const isBm = q ? isBookmarked(q.id) : false;
   const chap = q ? getChapterPdf(q.reference, q.subject) : null;
-  const chapHtml = chap ? `<a href="Mbook_chapters/${encodeURIComponent(chap[0])}" target="_blank" rel="noopener" style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px;text-decoration:none">${SVG_BOOK} Mbook <strong style="text-decoration:underline">${chap[1]}</strong> を開く</a>` : '';
+  const chapHtml = chap ? (() => {
+    const pageHash = chap[2] ? `#page=${chap[2]}` : '';
+    const pageLabel = chap[2] ? ` p.${chap[2]}` : '';
+    return `<a href="Mbook_chapters/${encodeURIComponent(chap[0])}${pageHash}" target="_blank" rel="noopener" style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px;text-decoration:none">${SVG_BOOK} Mbook <strong style="text-decoration:underline">${chap[1]}${pageLabel}</strong> を開く</a>`;
+  })() : '';
   fb.innerHTML = `
     <div class="feedback-icon">${isCorrect ? SVG_OK : SVG_NG}</div>
     <div class="feedback-label ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '正解！' : '不正解'}</div>
