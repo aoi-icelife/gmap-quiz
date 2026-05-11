@@ -28,9 +28,28 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
 .start-btn{width:100%;padding:18px;border-radius:16px;border:none;background:linear-gradient(135deg,#4a6cf7,#6a3de8);color:#fff;font-size:18px;font-weight:700;cursor:pointer;margin-top:auto;box-shadow:0 4px 15px rgba(74,108,247,.4);letter-spacing:.05em}
 .start-btn:active{transform:scale(.98)}
 .stats-row{display:flex;gap:8px;margin-top:4px}
-.stat-chip{flex:1;background:#f8f8f8;border-radius:10px;padding:10px 8px;text-align:center}
+.stat-chip{flex:1;background:#f8f8f8;border-radius:10px;padding:10px 8px;text-align:center;border:none;cursor:pointer;transition:background .15s}
+.stat-chip:active{background:#eef1ff}
 .stat-chip .num{font-size:22px;font-weight:700;color:#2d3561}
 .stat-chip .lbl{font-size:11px;color:#888;margin-top:2px}
+/* Stats modal */
+.stats-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;align-items:flex-end}
+.stats-modal-overlay.open{display:flex}
+.stats-modal{background:#fff;border-radius:20px 20px 0 0;width:100%;max-height:78vh;display:flex;flex-direction:column}
+.stats-modal-hdr{padding:16px 16px 12px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #eee;flex-shrink:0}
+.stats-modal-title{font-size:16px;font-weight:700;color:#1a1a2e}
+.stats-modal-close{background:none;border:none;cursor:pointer;color:#888;padding:4px 8px;border-radius:8px}
+.stats-modal-body{overflow-y:auto;flex:1;padding:0 16px}
+.stats-modal-item{display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid #f4f4f4}
+.stats-modal-qtext{flex:1;font-size:13px;color:#333;line-height:1.4}
+.stats-modal-score{font-size:12px;color:#888;white-space:nowrap;min-width:54px;text-align:right}
+.stats-modal-del{background:none;border:none;color:#e74c3c;font-size:16px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+.stats-modal-footer{padding:12px 16px;border-top:1px solid #eee;flex-shrink:0}
+/* Reset button */
+.reset-stats-btn{width:100%;padding:12px;border-radius:12px;border:1.5px solid #e74c3c;background:#fff;color:#e74c3c;font-size:13px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:6px}
+/* わからない button */
+.skip-btn{width:100%;padding:14px;border-radius:14px;border:2px dashed #bbb;background:#fafafa;color:#888;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+.skip-btn:active{background:#f0f0f0;border-color:#999}
 .weak-warn{font-size:12px;color:#e67e22;margin-top:8px;text-align:center;display:none}
 .extra-toggle{width:100%;background:none;border:none;color:#888;font-size:12px;font-weight:600;cursor:pointer;padding:8px 0 2px;letter-spacing:.04em;text-align:center}
 .extra-toggle:hover{color:#555}
@@ -88,7 +107,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
 .bm-item-del{border:none;background:none;color:#e74c3c;font-size:12px;cursor:pointer;padding:0}
 .bm-clear-btn{width:100%;padding:14px;border-radius:12px;border:1.5px solid #e74c3c;background:#fff;color:#e74c3c;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px}
 /* home bookmark button */
-.bm-home-btn{width:100%;padding:14px;border-radius:14px;border:1.5px solid #f0a500;background:#fff8e0;color:#c87800;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;text-align:center}
+.bm-home-btn{width:100%;padding:14px;border-radius:14px;border:1.5px solid #f0a500;background:#fff8e0;color:#c87800;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
+/* SVG icon helpers */
+.icon{display:inline-block;vertical-align:middle;flex-shrink:0}
 
 /* Calc problem */
 .calc-table-wrap{overflow-x:auto;margin-bottom:16px}
@@ -136,10 +157,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
   <div class="card">
     <div class="section-label">学習状況</div>
     <div class="stats-row" id="stats-row">
-      <div class="stat-chip"><div class="num" id="stat-total">0</div><div class="lbl">解答済み</div></div>
-      <div class="stat-chip"><div class="num" id="stat-correct">0</div><div class="lbl">正解</div></div>
-      <div class="stat-chip"><div class="num" id="stat-weak">0</div><div class="lbl">苦手</div></div>
+      <button class="stat-chip" onclick="showStatsList('total')"><div class="num" id="stat-total">0</div><div class="lbl">解答済み</div></button>
+      <button class="stat-chip" onclick="showStatsList('correct')"><div class="num" id="stat-correct">0</div><div class="lbl">正解</div></button>
+      <button class="stat-chip" onclick="showStatsList('weak')"><div class="num" id="stat-weak">0</div><div class="lbl">苦手</div></button>
     </div>
+    <button class="reset-stats-btn" onclick="clearHistory()">
+      <svg class="icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+      学習履歴をリセット
+    </button>
   </div>
 
   <div class="card">
@@ -180,14 +205,41 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Kaku Gothic Pro',san
   </div>
 
   <button class="start-btn" onclick="startQuiz()">スタート</button>
-  <button class="bm-home-btn" id="bm-home-btn" onclick="showScreen('bookmarks')">⭐ あとで確認リスト <span id="bm-count-badge"></span></button>
+  <button class="bm-home-btn" id="bm-home-btn" onclick="showScreen('bookmarks')">
+    <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="#f0a500" stroke="#c87800" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+    あとで確認リスト <span id="bm-count-badge"></span>
+  </button>
+</div>
+
+<!-- ===== STATS MODAL ===== -->
+<div class="stats-modal-overlay" id="stats-modal-overlay" onclick="if(event.target===this)closeStatsModal()">
+  <div class="stats-modal">
+    <div class="stats-modal-hdr">
+      <div class="stats-modal-title" id="stats-modal-title">解答済み問題</div>
+      <button class="stats-modal-close" onclick="closeStatsModal()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="stats-modal-body" id="stats-modal-body"></div>
+    <div class="stats-modal-footer">
+      <button class="reset-stats-btn" onclick="clearHistoryFromModal()">
+        <svg class="icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+        全履歴をリセット
+      </button>
+    </div>
+  </div>
 </div>
 
 <!-- ===== BOOKMARKS SCREEN ===== -->
 <div id="screen-bookmarks">
   <div class="bm-header">
-    <button class="bm-back" onclick="showScreen('top')">←</button>
-    <h2>⭐ あとで確認リスト</h2>
+    <button class="bm-back" onclick="showScreen('top')">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <h2>
+      <svg class="icon" width="18" height="18" viewBox="0 0 24 24" fill="#fff" stroke="#fff" stroke-width="1.5" style="margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      あとで確認リスト
+    </h2>
   </div>
   <div class="bm-body" id="bm-body"></div>
 </div>
@@ -598,6 +650,10 @@ function renderMCQuestion(q, body) {
     <div class="q-subject-tag">${q.subject}</div>
     <div class="q-text">${q.question}</div>
     <div class="choices" id="choices"></div>
+    <button class="skip-btn" id="skip-btn" onclick="skipQuestion(${JSON.stringify(q).replace(/"/g,'&quot;')}, ${correctShuffledIdx})">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      わからない
+    </button>
     <div class="feedback-area" id="feedback"></div>`;
 
   const choicesEl = document.getElementById('choices');
@@ -670,22 +726,114 @@ function answerCalc(chosen, q) {
   showFeedback(isCorrect, null, formulaHtml);
 }
 
+const SVG_OK  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#27ae60" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>`;
+const SVG_NG  = `<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+const SVG_STAR_ON  = `<svg width="20" height="20" viewBox="0 0 24 24" fill="#f0a500" stroke="#c87800" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const SVG_STAR_OFF = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="1.5"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+const SVG_BOOK = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
+
+function getChapterPdf(ref) {
+  if (!ref) return null;
+  const r = ref.replace('参照：','').replace('Mbook ','');
+  if (/^1-/.test(r)) return ['Mbook_01_経営戦略.pdf','01 経営戦略'];
+  if (/^2-/.test(r)) return ['Mbook_02_マーケティング.pdf','02 マーケティング'];
+  if (/^3-/.test(r)) return ['Mbook_03_アカウンティング.pdf','03 アカウンティング'];
+  if (/^4-/.test(r)) return ['Mbook_04_ファイナンス.pdf','04 ファイナンス'];
+  if (/^5-/.test(r)) return ['Mbook_05_人・組織.pdf','05 人・組織'];
+  if (/^IT/.test(r))  return ['Mbook_06_IT.pdf','06 IT'];
+  if (/^7-/.test(r)) return ['Mbook_07_ゲーム理論・交渉術.pdf','07 ゲーム理論・交渉術'];
+  return null;
+}
+
 function showFeedback(isCorrect, refText, extraHtml, explanationText, q) {
   const fb = document.getElementById('feedback');
   fb.style.display = 'block';
+  const skipBtn = document.getElementById('skip-btn');
+  if (skipBtn) skipBtn.style.display = 'none';
   const isBm = q ? isBookmarked(q.id) : false;
-  const bmId = q ? `data-qid="${q.id}"` : '';
+  const chap = q ? getChapterPdf(q.reference) : null;
+  const chapHtml = chap ? `<div style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px">${SVG_BOOK} Mbook <strong>${chap[1]}</strong> を確認</div>` : '';
   fb.innerHTML = `
-    <div class="feedback-icon">${isCorrect ? '✅' : '❌'}</div>
+    <div class="feedback-icon">${isCorrect ? SVG_OK : SVG_NG}</div>
     <div class="feedback-label ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '正解！' : '不正解'}</div>
-    ${explanationText ? `<div class="explanation-box"><strong>解説</strong>${explanationText}</div>` : ''}
-    ${refText ? `<div class="reference-box"><strong>参照</strong>${refText}</div>` : ''}
+    ${explanationText ? `<div class="explanation-box"><strong>解説</strong>${explanationText}${chapHtml}</div>` : ''}
+    ${refText ? `<div class="reference-box"><strong>参照</strong>${refText}${!explanationText ? chapHtml : ''}</div>` : ''}
     ${extraHtml || ''}
     <div class="bookmark-row">
-      <button class="bookmark-btn${isBm ? ' active' : ''}" ${bmId} onclick="toggleBookmark(this, ${q ? JSON.stringify(q).replace(/"/g,'&quot;') : 'null'})" title="あとで確認リストに追加">${isBm ? '⭐' : '☆'} あとで確認</button>
-      <div class="next-btn-wrap"><button class="next-btn" onclick="nextQuestion()">${currentIdx + 1 < quizQueue.length ? '次の問題へ →' : '結果を見る'}</button></div>
+      <button class="bookmark-btn${isBm ? ' active' : ''}" onclick="toggleBookmark(this, ${q ? JSON.stringify(q).replace(/"/g,'&quot;') : 'null'})" title="あとで確認リストに追加">${isBm ? SVG_STAR_ON : SVG_STAR_OFF} あとで確認</button>
+      <div class="next-btn-wrap"><button class="next-btn" onclick="nextQuestion()">${currentIdx + 1 < quizQueue.length ? '次の問題へ' : '結果を見る'}</button></div>
     </div>`;
   fb.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function skipQuestion(q, correctIdx) {
+  if (answered) return;
+  answered = true;
+  recordAnswer(q.id, false);
+  sessionResults.push({ q, isCorrect: false, chosenText: 'わからない', correctText: q.choices[q.correct] });
+  const btns = document.querySelectorAll('.choice-btn');
+  btns.forEach((b, i) => {
+    b.disabled = true;
+    if (i === correctIdx) b.classList.add('reveal');
+  });
+  showFeedback(false, `参照：${q.reference}`, null, q.explanation || null, q);
+}
+
+// ===== STATS MODAL =====
+let currentStatsType = 'total';
+
+function showStatsList(type) {
+  currentStatsType = type;
+  const h = getHistory();
+  const weakIds = getWeakIds().map(String);
+  let items = [];
+  if (type === 'total') {
+    items = Object.keys(h).map(id => ({ id, ...h[id] }));
+  } else if (type === 'correct') {
+    items = Object.keys(h).filter(id => h[id].correct > h[id].wrong).map(id => ({ id, ...h[id] }));
+  } else {
+    items = weakIds.map(id => ({ id, ...h[id] }));
+  }
+  const titles = { total: '解答済み問題', correct: '得意な問題', weak: '苦手な問題' };
+  document.getElementById('stats-modal-title').textContent = `${titles[type]} (${items.length})`;
+  const body = document.getElementById('stats-modal-body');
+  if (items.length === 0) {
+    body.innerHTML = '<div style="text-align:center;color:#888;padding:40px 0">データがありません</div>';
+  } else {
+    body.innerHTML = items.map(item => {
+      const q = QUESTIONS.find(q => String(q.id) === String(item.id));
+      const txt = q ? q.question.replace(/<[^>]+>/g,'').substring(0, 45) + (q.question.length > 45 ? '…' : '') : `Q${item.id}`;
+      return `<div class="stats-modal-item">
+        <div class="stats-modal-qtext">${txt}</div>
+        <div class="stats-modal-score">${item.correct}○ ${item.wrong}✗</div>
+        <button class="stats-modal-del" onclick="deleteHistoryItem('${item.id}')" title="削除">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('stats-modal-overlay').classList.add('open');
+}
+
+function deleteHistoryItem(id) {
+  const h = getHistory();
+  delete h[id];
+  saveHistory(h);
+  updateTopStats();
+  showStatsList(currentStatsType);
+}
+
+function closeStatsModal() {
+  document.getElementById('stats-modal-overlay').classList.remove('open');
+  updateTopStats();
+}
+
+function clearHistoryFromModal() {
+  if (confirm('学習履歴をすべて削除しますか？')) {
+    localStorage.removeItem(LS_HISTORY);
+    updateTopStats();
+    closeStatsModal();
+  }
 }
 
 function nextQuestion() {
@@ -761,7 +909,6 @@ function clearHistory() {
   if (confirm('学習履歴をすべて削除しますか？')) {
     localStorage.removeItem(LS_HISTORY);
     updateTopStats();
-    alert('履歴を削除しました。');
   }
 }
 
@@ -801,13 +948,13 @@ function toggleBookmark(btn, q) {
   if (idx >= 0) {
     bms.splice(idx, 1);
     btn.classList.remove('active');
-    btn.innerHTML = '☆ あとで確認';
+    btn.innerHTML = SVG_STAR_OFF + ' あとで確認';
   } else {
     bms.push({ id: q.id, subject: q.subject, reference: q.reference,
       question: q.question.replace(/<[^>]+>/g,''), savedAt: Date.now() });
     saveBookmarks(bms);
     btn.classList.add('active');
-    btn.innerHTML = '⭐ あとで確認';
+    btn.innerHTML = SVG_STAR_ON + ' あとで確認';
   }
   saveBookmarks(bms);
   updateBmBadge();
@@ -821,7 +968,7 @@ function renderBookmarks() {
   const bms = loadBookmarks();
   const body = document.getElementById('bm-body');
   if (bms.length === 0) {
-    body.innerHTML = '<div class="bm-empty">📭 リストは空です<br>問題を解いて ☆ を押すと<br>ここに追加されます</div>';
+    body.innerHTML = '<div class="bm-empty">リストは空です<br>問題を解いて ☆ を押すと<br>ここに追加されます</div>';
     return;
   }
   const items = bms.slice().reverse().map(b => `
@@ -831,7 +978,7 @@ function renderBookmarks() {
       <div class="bm-item-ref">📖 ${b.reference}</div>
       <button class="bm-item-del" onclick="removeBookmark(${b.id})">✕ リストから削除</button>
     </div>`).join('');
-  body.innerHTML = items + `<button class="bm-clear-btn" onclick="clearBookmarks()">🗑 リストをすべて削除</button>`;
+  body.innerHTML = items + `<button class="bm-clear-btn" onclick="clearBookmarks()" style="display:flex;align-items:center;justify-content:center;gap:6px"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> リストをすべて削除</button>`;
 }
 function removeBookmark(id) {
   let bms = loadBookmarks().filter(b => b.id !== id);
