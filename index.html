@@ -1101,7 +1101,7 @@ function retryWeak() {
 
 function goTop() {
   updateTopStats();
-  showScreen('top');
+  showTab('practice');
 }
 
 function clearHistory() {
@@ -1114,16 +1114,31 @@ function clearHistory() {
 // ===================================================
 // SCREEN SWITCHING
 // ===================================================
+const _TAB_SCREENS = ['top','exam-home','stats-tab','bookmarks'];
+const _ALL_SCREENS  = ['login','top','quiz','result','bookmarks','exam-home','exam-quiz','exam-result','stats-tab'];
+
 function showScreen(name) {
-  ['login','top','quiz','result','bookmarks'].forEach(s => {
+  _ALL_SCREENS.forEach(s => {
     const el = document.getElementById('screen-' + s);
     if (!el) return;
     el.style.display = (s === name) ? 'flex' : 'none';
     if (s === name && s !== 'top' && s !== 'login') el.style.flexDirection = 'column';
   });
+  const tabBar = document.getElementById('tab-bar');
+  if (tabBar) tabBar.style.display = _TAB_SCREENS.includes(name) ? 'flex' : 'none';
   if (name === 'bookmarks') renderBookmarks();
   if (name === 'top') updateBmBadge();
   window.scrollTo(0,0);
+}
+
+function showTab(tab) {
+  const map = {practice:'top', exam:'exam-home', stats:'stats-tab', bookmarks:'bookmarks'};
+  showScreen(map[tab] || 'top');
+  document.querySelectorAll('.tab-item').forEach(b => b.classList.remove('active'));
+  const btn = document.getElementById('tab-' + tab);
+  if (btn) btn.classList.add('active');
+  if (tab === 'stats') renderStatsTab();
+  if (tab === 'exam') renderExamHistory();
 }
 
 // ===================================================
@@ -1202,7 +1217,7 @@ function checkLogin() {
   const p = document.getElementById('login-pass').value;
   if (u === 'nhiyamizu' && p === '123456naoya') {
     sessionStorage.setItem('gmap_auth', '1');
-    showScreen('top');
+    showTab('practice');
   } else {
     document.getElementById('login-error').textContent = 'ユーザー名またはパスワードが違います';
     document.getElementById('login-pass').value = '';
