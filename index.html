@@ -961,9 +961,11 @@ function showFeedback(isCorrect, refText, extraHtml, explanationText, q) {
   const isBm = q ? isBookmarked(q.id) : false;
   const chap = q ? getChapterPdf(q.reference, q.subject) : null;
   const chapHtml = chap ? (() => {
-    const pageHash = chap[2] ? `#page=${chap[2]}` : '';
     const pageLabel = chap[2] ? ` p.${chap[2]}` : '';
-    return `<a href="Mbook_chapters/${encodeURIComponent(chap[0])}${pageHash}" target="_blank" rel="noopener" style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px;text-decoration:none">${SVG_BOOK} Mbook <strong style="text-decoration:underline">${chap[1]}${pageLabel}</strong> を開く</a>`;
+    const href = chap[2]
+      ? `pdfview.html?f=${encodeURIComponent(chap[0])}&p=${chap[2]}`
+      : `Mbook_chapters/${encodeURIComponent(chap[0])}`;
+    return `<a href="${href}" target="_blank" rel="noopener" style="font-size:12px;color:#4a6cf7;margin-top:6px;display:flex;align-items:center;gap:4px;text-decoration:none">${SVG_BOOK} Mbook <strong style="text-decoration:underline">${chap[1]}${pageLabel}</strong> を開く</a>`;
   })() : '';
   fb.innerHTML = `
     <div class="feedback-icon">${isCorrect ? SVG_OK : SVG_NG}</div>

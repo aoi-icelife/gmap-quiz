@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Mbook ビューア</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#2c2c2c;font-family:-apple-system,sans-serif;overflow:hidden;height:100vh;display:flex;flex-direction:column}
+#toolbar{background:#1a1a2e;padding:10px 14px;display:flex;align-items:center;gap:8px;color:#fff;flex-shrink:0;min-height:50px}
+#title{flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tb-btn{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0}
+.tb-btn:disabled{opacity:.3}
+#pageInfo{font-size:13px;white-space:nowrap;flex-shrink:0}
+#viewer{flex:1;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;align-items:center;padding:8px 0;gap:6px}
+canvas{display:block;max-width:100%;box-shadow:0 2px 8px rgba(0,0,0,.5)}
+#loading{color:#aaa;font-size:14px;margin:auto;padding:40px}
+#closeBtn{background:#e74c3c;border:none;color:#fff;padding:6px 12px;border-radius:8px;font-size:14px;cursor:pointer;flex-shrink:0}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <button class="tb-btn" id="prevBtn" onclick="changePage(-1)" disabled>◀</button>
+  <span id="pageInfo">-</span>
+  <button class="tb-btn" id="nextBtn" onclick="changePage(1)" disabled>▶</button>
+  <span id="title">読み込み中...</span>
+  <button id="closeBtn" onclick="history.back()">✕</button>
+</div>
+<div id="viewer"><div id="loading">PDFを読み込んでいます...</div></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+const params = new URLSearchParams(location.search);
+const fileName = params.get('f') || '';
+const targetPage = parseInt(params.get('p')) || 1;
+
+let pdfDoc = null;
+let currentPage = targetPage;
+let totalPages = 0;
+let rendering = false;
+const SCALE = window.devicePixelRatio >= 2 ? 1.5 : 2.0;
+
+document.getElementById('title').textContent = decodeURIComponent(fileName).replace(/Mbook_\d+_/, '').replace('.pdf','');
+
+async function loadPdf() {
+  try {
+    const url = 'Mbook_chapters/' + fileName;
+    pdfDoc = await pdfjsLib.getDocument(url).promise;
+    totalPages = pdfDoc.numPages;
+    await renderPage(targetPage);
+    updateUI();
+  } catch(e) {
+    document.getElementById('loading').textContent = 'PDF読み込みエラー: ' + e.message;
+  }
+}
+
+async function renderPage(num) {
+  if (rendering) return;
+  rendering = true;
+  currentPage = Math.max(1, Math.min(num, totalPages));
+
+  const viewer = document.getElementById('viewer');
+  viewer.innerHTML = '';
+
+  const page = await pdfDoc.getPage(currentPage);
+  const vp = page.getViewport({scale: SCALE});
+
+  const canvas = document.createElement('canvas');
+  canvas.width = vp.width;
+  canvas.height = vp.height;
+  canvas.style.width = '100%';
+  viewer.appendChild(canvas);
+
+  await page.render({canvasContext: canvas.getContext('2d'), viewport: vp}).promise;
+  rendering = false;
+  updateUI();
+  viewer.scrollTop = 0;
+}
+
+function updateUI() {
+  document.getElementById('pageInfo').textContent = `${currentPage} / ${totalPages}`;
+  document.getElementById('prevBtn').disabled = currentPage <= 1;
+  document.getElementById('nextBtn').disabled = currentPage >= totalPages;
+}
+
+function changePage(delta) {
+  if (!rendering) renderPage(currentPage + delta);
+}
+
+// スワイプ対応
+let touchStartX = 0, touchStartY = 0;
+document.getElementById('viewer').addEventListener('touchstart', e => {
+  touchStartX = e.touches[0].clientX;
+  touchStartY = e.touches[0].clientY;
+}, {passive:true});
+document.getElementById('viewer').addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  const dy = e.changedTouches[0].clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    changePage(dx < 0 ? 1 : -1);
+  }
+}, {passive:true});
+
+loadPdf();
+</script>
+</body>
+</html>
