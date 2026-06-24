@@ -755,9 +755,17 @@ function renderMCQuestion(q, body) {
   const shuffled = indices.map(i => q.choices[i]);
   const correctShuffledIdx = indices.indexOf(q.correct);
 
+  const chap = getChapterPdf(q.reference, q.subject);
+  const pdfLinkHtml = chap ? (() => {
+    const href = chap[2]
+      ? `pdfview.html?f=${encodeURIComponent(chap[0])}&p=${chap[2]}`
+      : `Mbook_chapters/${encodeURIComponent(chap[0])}`;
+    return `<a href="${href}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#4a6cf7;text-decoration:none;background:#eef1ff;border-radius:8px;padding:4px 8px;margin-bottom:10px">${SVG_BOOK} テキスト §${q.reference}</a>`;
+  })() : '';
   body.innerHTML = `
     <div class="q-number">第 ${currentIdx+1} 問</div>
     <div class="q-subject-tag">${q.subject}</div>
+    ${pdfLinkHtml}
     <div class="q-text">${q.question}</div>
     <div class="choices" id="choices"></div>
     <button class="skip-btn" id="skip-btn" onclick="skipQuestion(${JSON.stringify(q).replace(/"/g,'&quot;')}, ${correctShuffledIdx})">
@@ -1154,13 +1162,20 @@ function renderBookmarks() {
     全${bms.length}問を確認テストする
   </button>`;
   const items = bms.slice().reverse().map(b => {
+    const chap = getChapterPdf(b.reference, b.subject);
+    const pdfHref = chap ? (chap[2]
+      ? `pdfview.html?f=${encodeURIComponent(chap[0])}&p=${chap[2]}`
+      : `Mbook_chapters/${encodeURIComponent(chap[0])}`) : null;
     const choicesBtns = (b.choices || []).map((c, i) => `
       <button class="bm-choice" onclick="bmSelectChoice(this,${b.id},${i},${b.correct})">${c}</button>`).join('');
     return `
     <div class="bm-item" id="bm-item-${b.id}">
       <div class="bm-item-subject">${b.subject || ''}</div>
       <div class="bm-item-q">${b.question}</div>
-      <div class="bm-item-ref">📖 ${b.reference}</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+        <span class="bm-item-ref" style="margin-bottom:0">📖 ${b.reference}</span>
+        ${pdfHref ? `<a href="${pdfHref}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#4a6cf7;text-decoration:none;background:#eef1ff;border-radius:8px;padding:4px 8px;font-weight:600">${SVG_BOOK} テキストを開く</a>` : ''}
+      </div>
       ${b.choices && b.choices.length ? `<button class="bm-reveal-btn" id="bm-reveal-${b.id}" onclick="bmReveal(${b.id})">答えを確認する ▼</button>` : ''}
       <div class="bm-choices" id="bm-choices-${b.id}">${choicesBtns}</div>
       ${b.point ? `<div class="bm-point" id="bm-point-${b.id}">★ ${b.point}</div>` : ''}
